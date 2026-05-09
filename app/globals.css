@@ -1,0 +1,169 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-main: #faf3e0;
+  --bg-card: #fff8f0;
+  --color-primary: #8b5e3c;
+  --color-accent: #d4a373;
+  --color-text: #3d2b1f;
+  --color-border: #e9d8c2;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  background-color: var(--bg-main);
+  color: var(--color-text);
+  font-family: 'Georgia', serif;
+}
+
+/* Japanese text styling */
+.japanese-text {
+  font-family: 'Hiragino Mincho ProN', 'Yu Mincho', 'Noto Serif JP', serif;
+  line-height: 2.2;
+  letter-spacing: 0.05em;
+}
+
+/* Word hover effects */
+.word-token {
+  cursor: pointer;
+  border-radius: 3px;
+  padding: 1px 2px;
+  transition: background-color 0.15s ease;
+  display: inline;
+}
+
+.word-token:hover {
+  background-color: #f5e6c8;
+}
+
+.word-token.active {
+  background-color: #fef3c7;
+  color: #92400e;
+  font-weight: bold;
+}
+
+.word-token.reading {
+  background-color: #f59e0b;
+  color: #ffffff;
+  border-radius: 4px;
+  animation: pulse-amber 0.8s ease-in-out infinite alternate;
+}
+
+@keyframes pulse-amber {
+  from { background-color: #f59e0b; }
+  to { background-color: #d97706; }
+}
+
+/* Segment highlighting */
+.segment-active {
+  background-color: #fff8e7;
+  border-left: 3px solid #d4a373;
+  padding-left: 12px;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f5ece0;
+}
+::-webkit-scrollbar-thumb {
+  background: #d4a373;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #8b5e3c;
+}
+
+/* Card styles */
+.cafe-card {
+  background: var(--bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(139, 94, 60, 0.10);
+}
+
+/* Button styles */
+.btn-primary {
+  background-color: #8b5e3c;
+  color: white;
+  padding: 8px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border: none;
+}
+.btn-primary:hover {
+  background-color: #6b4226;
+}
+
+.btn-secondary {
+  background-color: #e9d8c2;
+  color: #3d2b1f;
+  padding: 8px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border: none;
+}
+.btn-secondary:hover {
+  background-color: #d4a373;
+}
+
+/* Popup overlay */
+.popup-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(61, 43, 31, 0.4);
+  backdrop-filter: blur(2px);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Progress bar */
+.progress-bar {
+  height: 4px;
+  background: #e9d8c2;
+  border-radius: 2px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(to right, #d4a373, #8b5e3c);
+  transition: width 0.3s ease;
+}
+
+/* Furigana (ruby text) */
+ruby rt {
+  font-size: 0.5em;
+  color: #9d7b6a;
+}
+
+/* Animation classes */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+  animation: fadeIn 0.25s ease-out;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.slide-up {
+  animation: slideUp 0.3s ease-out;
+}
