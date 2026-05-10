@@ -548,7 +548,9 @@ export default function KaraokePage() {
               paddingRight: isMobile ? 0 : '4px',
             }}
           >
-            {TRANSCRIPT.map((seg, idx) => renderSegment(seg, idx))}
+            {TRANSCRIPT
+  .filter((seg) => seg.id !== currentSegmentId)
+  .map((seg, idx) => renderSegment(seg, idx))}
           </div>
         </div>
       </div>
