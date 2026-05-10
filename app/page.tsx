@@ -54,13 +54,31 @@ export default function KaraokePage() {
   const [isTtsSpeaking, setIsTtsSpeaking] = useState(false);
   const [ttsSpeed, setTtsSpeed] = useState(0.85);
   const [showKorean, setShowKorean] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+    };
+  }, []);
 
   useEffect(() => {
     const el = segmentRefs.current[currentSegmentId];
+
     if (el) {
-      el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      el.scrollIntoView({
+        block: isMobile ? 'nearest' : 'center',
+        behavior: 'smooth',
+      });
     }
-  }, [currentSegmentId]);
+  }, [currentSegmentId, isMobile]);
 
   const stopTts = useCallback(() => {
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
@@ -175,7 +193,7 @@ export default function KaraokePage() {
           segmentRefs.current[idx] = el;
         }}
         style={{
-          padding: '12px 14px',
+          padding: isMobile ? '11px 12px' : '12px 14px',
           marginBottom: '4px',
           borderRadius: '10px',
           background: isActive ? '#fff8e7' : 'transparent',
@@ -189,11 +207,13 @@ export default function KaraokePage() {
       >
         <div
           style={{
-            fontSize: '17px',
-            lineHeight: '2.2',
+            fontSize: isMobile ? '16px' : '17px',
+            lineHeight: isMobile ? '2.0' : '2.2',
             color: isActive ? '#3d2b1f' : '#7a6050',
             fontFamily: 'Noto Serif JP, Georgia, serif',
             transition: 'color 0.3s ease',
+            wordBreak: 'keep-all',
+            overflowWrap: 'break-word',
           }}
           onClick={(e) => e.stopPropagation()}
         >
@@ -232,6 +252,8 @@ export default function KaraokePage() {
               borderTop: isActive ? '1px solid #e9d8c2' : 'none',
               paddingTop: isActive ? '6px' : '2px',
               opacity: isActive ? 1 : 0.72,
+              wordBreak: 'keep-all',
+              overflowWrap: 'break-word',
             }}
           >
             {seg.korean}
@@ -251,11 +273,17 @@ export default function KaraokePage() {
   const currentSegment = TRANSCRIPT[currentSegmentId];
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '20px 16px' }}>
-      <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+    <div
+      style={{
+        maxWidth: '1200px',
+        margin: '0 auto',
+        padding: isMobile ? '14px 12px' : '20px 16px',
+      }}
+    >
+      <div style={{ textAlign: 'center', marginBottom: isMobile ? '14px' : '20px' }}>
         <h1
           style={{
-            fontSize: '22px',
+            fontSize: isMobile ? '20px' : '22px',
             color: '#8b5e3c',
             fontFamily: 'Noto Serif JP, serif',
             margin: '0 0 4px',
@@ -263,7 +291,14 @@ export default function KaraokePage() {
         >
           ☕ マイの日本語ポッドキャスト
         </h1>
-        <p style={{ fontSize: '13px', color: '#9d7b6a', margin: 0 }}>
+        <p
+          style={{
+            fontSize: isMobile ? '12px' : '13px',
+            color: '#9d7b6a',
+            margin: 0,
+            lineHeight: '1.5',
+          }}
+        >
           일본 편의점 이야기 — 단어를 클릭하면 뜻을 확인할 수 있어요 ✨
         </p>
       </div>
@@ -307,7 +342,7 @@ export default function KaraokePage() {
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: '320px 1fr',
+          gridTemplateColumns: isMobile ? '1fr' : '320px 1fr',
           gap: '16px',
           alignItems: 'start',
         }}
@@ -317,8 +352,8 @@ export default function KaraokePage() {
             display: 'flex',
             flexDirection: 'column',
             gap: '14px',
-            position: 'sticky',
-            top: '76px',
+            position: isMobile ? 'static' : 'sticky',
+            top: isMobile ? undefined : '76px',
           }}
         >
           <div
@@ -410,19 +445,20 @@ export default function KaraokePage() {
             borderRadius: '12px',
             border: '1px solid #e9d8c2',
             boxShadow: '0 2px 12px rgba(139,94,60,0.10)',
-            padding: '14px',
-            maxHeight: 'calc(100vh - 120px)',
+            padding: isMobile ? '12px' : '14px',
+            maxHeight: isMobile ? 'none' : 'calc(100vh - 120px)',
             display: 'flex',
             flexDirection: 'column',
-            position: 'sticky',
-            top: '76px',
+            position: isMobile ? 'static' : 'sticky',
+            top: isMobile ? undefined : '76px',
           }}
         >
           <div
             style={{
               display: 'flex',
-              alignItems: 'center',
+              alignItems: isMobile ? 'flex-start' : 'center',
               justifyContent: 'space-between',
+              gap: '8px',
               marginBottom: '10px',
               paddingBottom: '10px',
               borderBottom: '1px solid #e9d8c2',
@@ -438,7 +474,14 @@ export default function KaraokePage() {
             >
               📜 트랜스크립트
             </h2>
-            <span style={{ fontSize: '11px', color: '#9d7b6a' }}>
+            <span
+              style={{
+                fontSize: '11px',
+                color: '#9d7b6a',
+                textAlign: 'right',
+                lineHeight: '1.4',
+              }}
+            >
               💡 단어 클릭 → 의미 확인
             </span>
           </div>
@@ -449,7 +492,7 @@ export default function KaraokePage() {
               border: '1px solid #e9d8c2',
               borderLeft: '4px solid #d4a373',
               borderRadius: '12px',
-              padding: '12px 14px',
+              padding: isMobile ? '10px 12px' : '12px 14px',
               marginBottom: '12px',
               boxShadow: '0 2px 8px rgba(139,94,60,0.08)',
             }}
@@ -467,10 +510,12 @@ export default function KaraokePage() {
 
             <div
               style={{
-                fontSize: '18px',
+                fontSize: isMobile ? '17px' : '18px',
                 color: '#3d2b1f',
                 fontFamily: 'Noto Serif JP, serif',
-                lineHeight: '2',
+                lineHeight: isMobile ? '2.0' : '2',
+                wordBreak: 'keep-all',
+                overflowWrap: 'break-word',
               }}
             >
               {currentSegment?.text}
@@ -486,6 +531,8 @@ export default function KaraokePage() {
                   paddingTop: '6px',
                   marginTop: '6px',
                   lineHeight: '1.6',
+                  wordBreak: 'keep-all',
+                  overflowWrap: 'break-word',
                 }}
               >
                 {currentSegment?.korean}
@@ -496,9 +543,9 @@ export default function KaraokePage() {
           <div
             ref={transcriptRef}
             style={{
-              overflowY: 'auto',
+              overflowY: isMobile ? 'visible' : 'auto',
               flex: 1,
-              paddingRight: '4px',
+              paddingRight: isMobile ? 0 : '4px',
             }}
           >
             {TRANSCRIPT.map((seg, idx) => renderSegment(seg, idx))}
