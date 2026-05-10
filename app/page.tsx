@@ -204,11 +204,22 @@ export default function KaraokePage() {
             );
           })}
         </div>
-        {showKorean && isActive && (
-          <div style={{ fontSize: '12px', color: '#9d7b6a', marginTop: '4px', lineHeight: '1.6', fontStyle: 'italic', borderTop: '1px solid #e9d8c2', paddingTop: '6px' }}>
-            {seg.korean}
-          </div>
-        )}
+{showKorean && (
+  <div
+    style={{
+      fontSize: '12px',
+      color: isActive ? '#8b5e3c' : '#9d7b6a',
+      marginTop: '4px',
+      lineHeight: '1.6',
+      fontStyle: 'italic',
+      borderTop: isActive ? '1px solid #e9d8c2' : 'none',
+      paddingTop: isActive ? '6px' : '2px',
+      opacity: isActive ? 1 : 0.72,
+    }}
+  >
+    {seg.korean}
+  </div>
+)}
       </div>
     );
   };
