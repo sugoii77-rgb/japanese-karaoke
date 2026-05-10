@@ -341,217 +341,199 @@ export default function KaraokePage() {
 
       <div
         style={{
-          display: 'grid',
-          gridTemplateColumns: isMobile ? '1fr' : '320px 1fr',
-          gap: '16px',
-          alignItems: 'start',
+          background: '#fff8f0',
+          borderRadius: '12px',
+          border: '1px solid #e9d8c2',
+          padding: isMobile ? '12px' : '14px',
+          boxShadow: '0 2px 12px rgba(139,94,60,0.08)',
+          marginBottom: '16px',
+        }}
+      >
+        <button
+          onClick={() =>
+            isTtsSpeaking ? stopTts() : readFromSegment(currentSegmentId)
+          }
+          style={{
+            width: '100%',
+            padding: '12px',
+            background: isTtsSpeaking ? '#8b3a3a' : '#8b5e3c',
+            color: 'white',
+            border: 'none',
+            borderRadius: '8px',
+            fontSize: '14px',
+            cursor: 'pointer',
+            fontWeight: 'bold',
+            marginBottom: '12px',
+          }}
+        >
+          {isTtsSpeaking ? '⏹ 정지' : '▶ 현재 구간부터 읽기'}
+        </button>
+
+        <div style={{ marginBottom: '12px' }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              fontSize: '11px',
+              color: '#9d7b6a',
+              marginBottom: '4px',
+            }}
+          >
+            <span>읽기 속도</span>
+            <span>
+              {ttsSpeed < 0.75
+                ? '🐢 느리게'
+                : ttsSpeed < 1.0
+                  ? '👟 보통'
+                  : '🐇 빠르게'}
+            </span>
+          </div>
+
+          <input
+            type="range"
+            min="0.6"
+            max="1.1"
+            step="0.25"
+            value={ttsSpeed}
+            onChange={(e) => setTtsSpeed(parseFloat(e.target.value))}
+            style={{ width: '100%', accentColor: '#8b5e3c' }}
+          />
+        </div>
+
+        <label
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            fontSize: '13px',
+            color: '#8b5e3c',
+            cursor: 'pointer',
+            paddingTop: '10px',
+            borderTop: '1px solid #e9d8c2',
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={showKorean}
+            onChange={(e) => setShowKorean(e.target.checked)}
+            style={{ accentColor: '#8b5e3c' }}
+          />
+          한국어 번역 보기
+        </label>
+      </div>
+
+      <div
+        style={{
+          background: '#fff8f0',
+          borderRadius: '12px',
+          border: '1px solid #e9d8c2',
+          boxShadow: '0 2px 12px rgba(139,94,60,0.10)',
+          padding: isMobile ? '12px' : '14px',
+          maxHeight: isMobile ? 'none' : 'calc(100vh - 120px)',
+          display: 'flex',
+          flexDirection: 'column',
+          position: isMobile ? 'static' : 'sticky',
+          top: isMobile ? undefined : '76px',
         }}
       >
         <div
           style={{
             display: 'flex',
-            flexDirection: 'column',
-            gap: '14px',
-            position: isMobile ? 'static' : 'sticky',
-            top: isMobile ? undefined : '76px',
+            alignItems: isMobile ? 'flex-start' : 'center',
+            justifyContent: 'space-between',
+            gap: '8px',
+            marginBottom: '10px',
+            paddingBottom: '10px',
+            borderBottom: '1px solid #e9d8c2',
           }}
         >
-          <div
+          <h2
             style={{
-              background: '#fff8f0',
-              borderRadius: '12px',
-              border: '1px solid #e9d8c2',
-              padding: '14px',
-              boxShadow: '0 2px 12px rgba(139,94,60,0.08)',
+              margin: 0,
+              fontSize: '14px',
+              fontWeight: 'bold',
+              color: '#8b5e3c',
             }}
           >
-            <button
-              onClick={() =>
-                isTtsSpeaking ? stopTts() : readFromSegment(currentSegmentId)
-              }
-              style={{
-                width: '100%',
-                padding: '12px',
-                background: isTtsSpeaking ? '#8b3a3a' : '#8b5e3c',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                fontSize: '14px',
-                cursor: 'pointer',
-                fontWeight: 'bold',
-                marginBottom: '12px',
-              }}
-            >
-              {isTtsSpeaking ? '⏹ 정지' : '▶ 현재 구간부터 읽기'}
-            </button>
-
-            <div style={{ marginBottom: '12px' }}>
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  fontSize: '11px',
-                  color: '#9d7b6a',
-                  marginBottom: '4px',
-                }}
-              >
-                <span>읽기 속도</span>
-                <span>
-                  {ttsSpeed < 0.75
-                    ? '🐢 느리게'
-                    : ttsSpeed < 1.0
-                      ? '👟 보통'
-                      : '🐇 빠르게'}
-                </span>
-              </div>
-
-              <input
-                type="range"
-                min="0.6"
-                max="1.1"
-                step="0.25"
-                value={ttsSpeed}
-                onChange={(e) => setTtsSpeed(parseFloat(e.target.value))}
-                style={{ width: '100%', accentColor: '#8b5e3c' }}
-              />
-            </div>
-
-            <label
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                fontSize: '13px',
-                color: '#8b5e3c',
-                cursor: 'pointer',
-                paddingTop: '10px',
-                borderTop: '1px solid #e9d8c2',
-              }}
-            >
-              <input
-                type="checkbox"
-                checked={showKorean}
-                onChange={(e) => setShowKorean(e.target.checked)}
-                style={{ accentColor: '#8b5e3c' }}
-              />
-              한국어 번역 보기
-            </label>
-          </div>
+            📜 트랜스크립트
+          </h2>
+          <span
+            style={{
+              fontSize: '11px',
+              color: '#9d7b6a',
+              textAlign: 'right',
+              lineHeight: '1.4',
+            }}
+          >
+            💡 단어 클릭 → 의미 확인
+          </span>
         </div>
 
         <div
           style={{
-            background: '#fff8f0',
-            borderRadius: '12px',
+            background: '#fff8e7',
             border: '1px solid #e9d8c2',
-            boxShadow: '0 2px 12px rgba(139,94,60,0.10)',
-            padding: isMobile ? '12px' : '14px',
-            maxHeight: isMobile ? 'none' : 'calc(100vh - 120px)',
-            display: 'flex',
-            flexDirection: 'column',
-            position: isMobile ? 'static' : 'sticky',
-            top: isMobile ? undefined : '76px',
+            borderLeft: '4px solid #d4a373',
+            borderRadius: '12px',
+            padding: isMobile ? '10px 12px' : '12px 14px',
+            marginBottom: '12px',
+            boxShadow: '0 2px 8px rgba(139,94,60,0.08)',
           }}
         >
           <div
             style={{
-              display: 'flex',
-              alignItems: isMobile ? 'flex-start' : 'center',
-              justifyContent: 'space-between',
-              gap: '8px',
-              marginBottom: '10px',
-              paddingBottom: '10px',
-              borderBottom: '1px solid #e9d8c2',
+              fontSize: '11px',
+              color: '#9d7b6a',
+              marginBottom: '6px',
+              fontWeight: 'bold',
             }}
           >
-            <h2
-              style={{
-                margin: 0,
-                fontSize: '14px',
-                fontWeight: 'bold',
-                color: '#8b5e3c',
-              }}
-            >
-              📜 트랜스크립트
-            </h2>
-            <span
-              style={{
-                fontSize: '11px',
-                color: '#9d7b6a',
-                textAlign: 'right',
-                lineHeight: '1.4',
-              }}
-            >
-              💡 단어 클릭 → 의미 확인
-            </span>
+            🎵 현재 구간
           </div>
 
           <div
             style={{
-              background: '#fff8e7',
-              border: '1px solid #e9d8c2',
-              borderLeft: '4px solid #d4a373',
-              borderRadius: '12px',
-              padding: isMobile ? '10px 12px' : '12px 14px',
-              marginBottom: '12px',
-              boxShadow: '0 2px 8px rgba(139,94,60,0.08)',
+              fontSize: isMobile ? '17px' : '18px',
+              color: '#3d2b1f',
+              fontFamily: 'Noto Serif JP, serif',
+              lineHeight: isMobile ? '2.0' : '2',
+              wordBreak: 'keep-all',
+              overflowWrap: 'break-word',
             }}
           >
-            <div
-              style={{
-                fontSize: '11px',
-                color: '#9d7b6a',
-                marginBottom: '6px',
-                fontWeight: 'bold',
-              }}
-            >
-              🎵 현재 구간
-            </div>
+            {currentSegment?.text}
+          </div>
 
+          {showKorean && (
             <div
               style={{
-                fontSize: isMobile ? '17px' : '18px',
-                color: '#3d2b1f',
-                fontFamily: 'Noto Serif JP, serif',
-                lineHeight: isMobile ? '2.0' : '2',
+                fontSize: '12px',
+                color: '#9d7b6a',
+                fontStyle: 'italic',
+                borderTop: '1px solid #e9d8c2',
+                paddingTop: '6px',
+                marginTop: '6px',
+                lineHeight: '1.6',
                 wordBreak: 'keep-all',
                 overflowWrap: 'break-word',
               }}
             >
-              {currentSegment?.text}
+              {currentSegment?.korean}
             </div>
+          )}
+        </div>
 
-            {showKorean && (
-              <div
-                style={{
-                  fontSize: '12px',
-                  color: '#9d7b6a',
-                  fontStyle: 'italic',
-                  borderTop: '1px solid #e9d8c2',
-                  paddingTop: '6px',
-                  marginTop: '6px',
-                  lineHeight: '1.6',
-                  wordBreak: 'keep-all',
-                  overflowWrap: 'break-word',
-                }}
-              >
-                {currentSegment?.korean}
-              </div>
-            )}
-          </div>
-
-          <div
-            ref={transcriptRef}
-            style={{
-              overflowY: isMobile ? 'visible' : 'auto',
-              flex: 1,
-              paddingRight: isMobile ? 0 : '4px',
-            }}
-          >
-            {TRANSCRIPT
-  .filter((seg) => seg.id !== currentSegmentId)
-  .map((seg, idx) => renderSegment(seg, idx))}
-          </div>
+        <div
+          ref={transcriptRef}
+          style={{
+            overflowY: isMobile ? 'visible' : 'auto',
+            flex: 1,
+            paddingRight: isMobile ? 0 : '4px',
+          }}
+        >
+          {TRANSCRIPT
+            .filter((seg) => seg.id !== currentSegmentId)
+            .map((seg, idx) => renderSegment(seg, idx))}
         </div>
       </div>
 
