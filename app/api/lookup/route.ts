@@ -1,5 +1,63 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// ── 인메모리 번역 캐시 (서버 수명 동안 유지) ─────────────────
+const translationCache = new Map<string, string>();
+
+async function translateBatch(texts: string[]): Promise<string[]> {
+  const apiKey = process.env.GOOGLE_TRANSLATE_API_KEY;
+  if (!apiKey || texts.length === 0) return texts;
+
+  const result = new Array<string>(texts.length);
+  const toFetch: { idx: number; text: string }[] = [];
+
+  texts.forEach((text, i) => {
+    const cached = translationCache.get(text);
+    if (cached !== undefined) {
+      result[i] = cached;
+    } else {
+      toFetch.push({ idx: i, text });
+    }
+  });
+
+  if (toFetch.length === 0) return result;
+
+  try {
+    const res = await fetch(
+      `https://translation.googleapis.com/language/translate/v2?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          q: toFetch.map((f) => f.text),
+          source: 'en',
+          target: 'ko',
+          format: 'text',
+        }),
+      }
+    );
+
+    if (!res.ok) throw new Error(`Translate API error: ${res.status}`);
+
+    const data = await res.json();
+    const translations: { translatedText: string }[] =
+      data.data?.translations || [];
+
+    toFetch.forEach(({ idx, text }, i) => {
+      const translated = translations[i]?.translatedText || text;
+      result[idx] = translated;
+      translationCache.set(text, translated);
+    });
+  } catch {
+    // API 실패 시 영어 원문 그대로 반환
+    toFetch.forEach(({ idx, text }) => {
+      result[idx] = text;
+    });
+  }
+
+  return result;
+}
+
+// ── 품사 한국어 변환 ──────────────────────────────────────
 const posToKorean = (pos: string) => {
   if (!pos) return '';
 
@@ -62,13 +120,14 @@ const posToKorean = (pos: string) => {
     .join(', ');
 };
 
-const meaningToKorean = (
+// ── 수동 override 조회 (매칭 없으면 null 반환 → Google Translate로 넘김) ──
+function getManualOverride(
   originalWord: string,
   resultWord: string,
   reading: string,
   english: string
-) => {
-  if (!english) return '';
+): string | null {
+  if (!english) return null;
 
   const normalizedEnglish = english.toLowerCase().trim();
 
@@ -420,9 +479,9 @@ const meaningToKorean = (
     wordMap[resultWord] ||
     wordMap[reading] ||
     englishMap[normalizedEnglish] ||
-    english
+    null
   );
-};
+}
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -436,47 +495,84 @@ export async function GET(request: NextRequest) {
     const res = await fetch(
       `https://jisho.org/api/v1/search/words?keyword=${encodeURIComponent(word)}`,
       {
-        headers: {
-          'User-Agent': 'Mozilla/5.0',
-        },
+        headers: { 'User-Agent': 'Mozilla/5.0' },
         next: { revalidate: 3600 },
       }
     );
 
-    if (!res.ok) {
-      throw new Error('Jisho API error');
-    }
+    if (!res.ok) throw new Error('Jisho API error');
 
     const data = await res.json();
 
-    const results = (data.data || []).slice(0, 3).map((item: any) => {
+    // 1차 패스: 기본 데이터 수집 + 수동 override 조회
+    type SenseRaw = {
+      english: string;
+      manualKorean: string | null;
+      partsOfSpeech: string;
+      partsOfSpeechKo: string;
+    };
+    type ItemRaw = {
+      word: string;
+      reading: string;
+      senses: SenseRaw[];
+      jlpt: string;
+      common: boolean;
+    };
+
+    const items: ItemRaw[] = (data.data || []).slice(0, 3).map((item: any) => {
       const resultWord = item.japanese?.[0]?.word || word;
       const reading = item.japanese?.[0]?.reading || '';
 
-      return {
-        word: resultWord,
-        reading,
-        meanings: (item.senses || []).slice(0, 3).map((sense: any) => {
-          const english = (sense.english_definitions || []).slice(0, 3).join(', ');
-          const partsOfSpeech = (sense.parts_of_speech || []).slice(0, 2).join(', ');
+      const senses: SenseRaw[] = (item.senses || []).slice(0, 3).map((sense: any) => {
+        const english = (sense.english_definitions || []).slice(0, 3).join(', ');
+        const partsOfSpeech = (sense.parts_of_speech || []).slice(0, 2).join(', ');
+        return {
+          english,
+          manualKorean: getManualOverride(word, resultWord, reading, english),
+          partsOfSpeech,
+          partsOfSpeechKo: posToKorean(partsOfSpeech),
+        };
+      });
 
-          return {
-            english,
-            korean: meaningToKorean(word, resultWord, reading, english),
-            partsOfSpeech,
-            partsOfSpeechKo: posToKorean(partsOfSpeech),
-          };
-        }),
-        jlpt: item.jlpt?.[0] || '',
-        common: item.is_common || false,
-      };
+      return { word: resultWord, reading, senses, jlpt: item.jlpt?.[0] || '', common: item.is_common || false };
     });
+
+    // 2차 패스: 수동 override 없는 영어 뜻만 모아 Google Translate 일괄 번역
+    const toTranslate: string[] = [];
+    const translateMap: { itemIdx: number; senseIdx: number }[] = [];
+
+    items.forEach((item, itemIdx) => {
+      item.senses.forEach((sense, senseIdx) => {
+        if (sense.manualKorean === null && sense.english) {
+          toTranslate.push(sense.english);
+          translateMap.push({ itemIdx, senseIdx });
+        }
+      });
+    });
+
+    if (toTranslate.length > 0) {
+      const translated = await translateBatch(toTranslate);
+      translateMap.forEach(({ itemIdx, senseIdx }, i) => {
+        items[itemIdx].senses[senseIdx].manualKorean = translated[i];
+      });
+    }
+
+    // 최종 결과 조립
+    const results = items.map((item) => ({
+      word: item.word,
+      reading: item.reading,
+      meanings: item.senses.map((sense) => ({
+        english: sense.english,
+        korean: sense.manualKorean ?? sense.english,
+        partsOfSpeech: sense.partsOfSpeech,
+        partsOfSpeechKo: sense.partsOfSpeechKo,
+      })),
+      jlpt: item.jlpt,
+      common: item.common,
+    }));
 
     return NextResponse.json({ results });
-  } catch (err) {
-    return NextResponse.json({
-      results: [],
-      error: 'Could not fetch definition',
-    });
+  } catch {
+    return NextResponse.json({ results: [], error: 'Could not fetch definition' });
   }
 }
