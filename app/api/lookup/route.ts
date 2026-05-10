@@ -3,31 +3,17 @@ import { NextRequest, NextResponse } from 'next/server';
 const posToKorean = (pos: string) => {
   if (!pos) return '';
 
+  const normalizePos = (value: string) =>
+    value
+      .replace(/\s*\(.*?\)\s*/g, '')
+      .trim();
+
   const map: Record<string, string> = {
     'Adverb': '부사',
-    'Adverb taking the `to` particle': 'と를 동반하는 부사',
     'Noun': '명사',
-    'Noun, used as a suffix': '접미 명사',
-    'Noun, used as a prefix': '접두 명사',
     'Verb': '동사',
-    'Ichidan verb': '1단 동사',
-    'Godan verb': '5단 동사',
-    'Godan verb with `u` ending': '5단 동사',
-    'Godan verb with `ku` ending': '5단 동사',
-    'Godan verb with `gu` ending': '5단 동사',
-    'Godan verb with `su` ending': '5단 동사',
-    'Godan verb with `tsu` ending': '5단 동사',
-    'Godan verb with `nu` ending': '5단 동사',
-    'Godan verb with `bu` ending': '5단 동사',
-    'Godan verb with `mu` ending': '5단 동사',
-    'Godan verb with `ru` ending': '5단 동사',
-    'Transitive verb': '타동사',
-    'Intransitive verb': '자동사',
-    'I-adjective': 'い형용사',
-    'Na-adjective': 'な형용사',
-    'No-adjective': 'の형용사',
-    'Pre-noun adjectival': '연체사',
     'Expression': '표현',
+    'Expressions': '표현',
     'Expressions (phrases, clauses, etc.)': '표현',
     'Particle': '조사',
     'Conjunction': '접속사',
@@ -35,13 +21,34 @@ const posToKorean = (pos: string) => {
     'Pronoun': '대명사',
     'Prefix': '접두사',
     'Suffix': '접미사',
-    'Auxiliary verb': '조동사',
-    'Auxiliary adjective': '보조 형용사',
     'Counter': '조수사',
     'Numeric': '수사',
+
+    'I-adjective': 'い형용사',
+    'Na-adjective': 'な형용사',
+    'No-adjective': 'の형용사',
+    'Pre-noun adjectival': '연체사',
+
+    'Ichidan verb': '1단 동사',
+    'Godan verb': '5단 동사',
+    'Godan verb with u ending': '5단 동사',
+    'Godan verb with ku ending': '5단 동사',
+    'Godan verb with gu ending': '5단 동사',
+    'Godan verb with su ending': '5단 동사',
+    'Godan verb with tsu ending': '5단 동사',
+    'Godan verb with nu ending': '5단 동사',
+    'Godan verb with bu ending': '5단 동사',
+    'Godan verb with mu ending': '5단 동사',
+    'Godan verb with ru ending': '5단 동사',
+
+    'Transitive verb': '타동사',
+    'Intransitive verb': '자동사',
     'Suru verb': 'する 동사',
     'Suru verb - included': 'する 동사',
     'Suru verb - special class': 'する 동사',
+
+    'Auxiliary verb': '조동사',
+    'Auxiliary adjective': '보조 형용사',
     'Wikipedia definition': '위키 정의',
   };
 
@@ -49,12 +56,18 @@ const posToKorean = (pos: string) => {
     .split(',')
     .map((p) => {
       const trimmed = p.trim();
-      return map[trimmed] || trimmed;
+      const normalized = normalizePos(trimmed);
+      return map[trimmed] || map[normalized] || trimmed;
     })
     .join(', ');
 };
 
-const meaningToKorean = (clickedWord: string, english: string) => {
+const meaningToKorean = (
+  originalWord: string,
+  resultWord: string,
+  reading: string,
+  english: string
+) => {
   if (!english) return '';
 
   const normalizedEnglish = english.toLowerCase().trim();
@@ -63,20 +76,26 @@ const meaningToKorean = (clickedWord: string, english: string) => {
     '皆さん': '여러분',
     'こんにちは': '안녕하세요',
     'ようこそ': '어서 오세요, 환영합니다',
+    'お元気': '건강함, 잘 지냄',
     '私': '나, 저',
     '昨日': '어제',
     '韓国': '한국',
     '日本': '일본',
     '寒い': '춥다, 차갑다',
     '夜ごはん': '저녁밥',
+    '晩ごはん': '저녁밥',
     'おでん': '오뎅',
     '本当に': '정말로, 진짜로',
     '本当': '정말, 진짜, 사실',
     '最高': '최고',
     '大好き': '매우 좋아함',
-    'やっぱり': '역시, 아무래도',
+    'やっぱり': '역시, 역시나, 아무래도, 결국',
+    '矢っ張り': '역시, 역시나, 아무래도, 결국',
+    '矢張り': '역시, 역시나, 아무래도, 결국',
     'ときどき': '때때로, 가끔',
+    '時々': '때때로, 가끔',
     '恋しい': '그립다',
+    '恋しく': '그립게',
     '懐かしい': '그립다, 추억이 떠오르다',
     '寂しい': '외롭다, 쓸쓸하다',
     '気持ち': '마음, 기분',
@@ -91,10 +110,13 @@ const meaningToKorean = (clickedWord: string, english: string) => {
     '話し': '이야기',
     '紹介': '소개',
     '最後': '마지막',
+    '聞いて': '듣고',
     '有名': '유명함',
     '三つ': '세 개',
     '特徴': '특징',
     '一つ目': '첫 번째',
+    '二つ目': '두 번째',
+    '三つ目': '세 번째',
     '店舗': '점포',
     '一番': '가장, 제일',
     '多い': '많다',
@@ -121,7 +143,6 @@ const meaningToKorean = (clickedWord: string, english: string) => {
     'たくさん': '많이',
     'スイーツ': '디저트',
     '商品': '상품',
-    '二つ目': '두 번째',
     'ファミリーマート': '패밀리마트',
     'ファミマ': '파미마',
     '関東': '간토',
@@ -132,12 +153,13 @@ const meaningToKorean = (clickedWord: string, english: string) => {
     '実は': '사실은',
     '今まで': '지금까지',
     '一度も': '한 번도',
+    '分からなくて': '몰라서',
+    '調べて': '찾아보고',
     '外側': '바깥쪽',
     '中': '안, 속',
     '肉汁': '육즙',
     '若い': '젊다',
     '世代': '세대',
-    '三つ目': '세 번째',
     '普通': '보통',
     '辛い': '맵다',
     'チーズ': '치즈',
@@ -160,10 +182,14 @@ const meaningToKorean = (clickedWord: string, english: string) => {
     '高級': '고급',
     '印象': '인상',
     '略して': '줄여서',
+    '説明': '설명',
     '駅前': '역 앞',
     '近く': '근처',
     '会社': '회사',
+    '歩いて': '걸어서',
+    '見つかります': '찾을 수 있습니다',
     '営業': '영업',
+    '日本人': '일본인',
     '存在': '존재',
     '物': '물건',
     '買う': '사다',
@@ -175,6 +201,7 @@ const meaningToKorean = (clickedWord: string, english: string) => {
     '現金': '현금',
     '引き出す': '인출하다',
     '旅行': '여행',
+    '足りなく': '부족하게',
     '宅配': '택배',
     '荷物': '짐, 화물',
     '発送': '발송',
@@ -182,6 +209,7 @@ const meaningToKorean = (clickedWord: string, english: string) => {
     '支払い': '지불, 납부',
     '電気代': '전기요금',
     '水道代': '수도요금',
+    'ついでに': '~하는 김에',
     'コピー機': '복사기',
     '印刷': '인쇄',
     '写真': '사진',
@@ -189,11 +217,13 @@ const meaningToKorean = (clickedWord: string, english: string) => {
     '急に': '갑자기',
     '必要': '필요함',
     'トイレ': '화장실',
+    '借りて': '빌려서',
     '必ず': '반드시',
     'お店': '가게',
     '生活': '생활',
     '魅力': '매력',
     '季節': '계절',
+    'イベント': '이벤트',
     '春': '봄',
     '桜': '벚꽃',
     'いちご': '딸기',
@@ -202,6 +232,7 @@ const meaningToKorean = (clickedWord: string, english: string) => {
     '麺': '면',
     '熱中症': '열사병',
     '毎年': '매년',
+    '倒れる': '쓰러지다',
     '対策': '대책',
     '塩分': '염분',
     '補給': '보충',
@@ -211,6 +242,8 @@ const meaningToKorean = (clickedWord: string, english: string) => {
     'かぼちゃ': '호박',
     '冬': '겨울',
     '温かい': '따뜻하다',
+    'スープ': '수프',
+    '鍋料理': '냄비 요리',
     '食べ物': '음식',
     '中華まん': '중화 찐빵류',
     '肉まん': '고기만두',
@@ -221,15 +254,21 @@ const meaningToKorean = (clickedWord: string, english: string) => {
     '横': '옆',
     'ケース': '케이스',
     '会計': '계산',
+    '買おう': '사야겠다',
+    '子ども': '아이, 어린 시절',
     '思い出': '추억',
     '毎日': '매일',
     '母': '어머니',
-    '晩ごはん': '저녁밥',
     '当時': '당시',
     '仕事': '일',
+    '忙しくて': '바빠서',
+    '疲れて': '피곤해서',
     '意味': '의미',
+    'うれしくて': '기뻐서',
+    '答えて': '대답해서',
     '二人': '두 사람',
     '記憶': '기억',
+    '温かい記憶': '따뜻한 기억',
     'クリスマス': '크리스마스',
     'お正月': '설날, 정월',
     '予約': '예약',
@@ -254,6 +293,7 @@ const meaningToKorean = (clickedWord: string, english: string) => {
     '授業': '수업',
     '大人': '어른',
     '頻繁': '빈번함, 자주',
+    'まつわる': '관련된',
     'コメント': '댓글',
     '表現': '표현',
     '欲しい': '원하다',
@@ -300,9 +340,14 @@ const meaningToKorean = (clickedWord: string, english: string) => {
   };
 
   const englishMap: Record<string, string> = {
+    'as expected, sure enough, just as one thought': '역시, 예상대로, 생각한 대로',
+    'after all (is said and done), in the end, as one would expect': '결국, 아무래도, 역시',
+    'too, also, as well': '또한, 역시, ~도',
     'really, truly': '정말로, 진짜로',
     'truth, reality, actuality, fact': '진실, 실제, 사실',
     'convenience store': '편의점',
+    'japan': '일본',
+    'korea': '한국',
     'popular': '인기 있는',
     'convenient': '편리한',
     'cold': '추운, 차가운',
@@ -338,20 +383,31 @@ const meaningToKorean = (clickedWord: string, english: string) => {
     'around': '주변, 근처',
     'today': '오늘',
     'yesterday': '어제',
+    'tomorrow': '내일',
+    'now': '지금',
+    'old times': '옛날, 예전',
     'memory': '기억, 추억',
     'season': '계절',
+    'spring': '봄',
+    'summer': '여름',
+    'autumn': '가을',
+    'fall': '가을',
+    'winter': '겨울',
     'food': '음식',
     'meal': '식사',
+    'rice': '밥, 쌀',
     'sweet': '달콤한 것, 디저트',
     'sweets': '디저트',
     'quality': '품질, 퀄리티',
     'price': '가격',
     'expensive': '비싼',
+    'cheap': '싼',
     'health': '건강',
     'service': '서비스',
     'payment': '지불, 납부',
     'money': '돈',
     'cash': '현금',
+    'card': '카드',
     'question': '질문',
     'answer': '대답',
     'expression': '표현',
@@ -359,7 +415,13 @@ const meaningToKorean = (clickedWord: string, english: string) => {
     'meaning': '의미',
   };
 
-  return wordMap[clickedWord] || englishMap[normalizedEnglish] || english;
+  return (
+    wordMap[originalWord] ||
+    wordMap[resultWord] ||
+    wordMap[reading] ||
+    englishMap[normalizedEnglish] ||
+    english
+  );
 };
 
 export async function GET(request: NextRequest) {
@@ -400,7 +462,7 @@ export async function GET(request: NextRequest) {
 
           return {
             english,
-            korean: meaningToKorean(resultWord, english),
+            korean: meaningToKorean(word, resultWord, reading, english),
             partsOfSpeech,
             partsOfSpeechKo: posToKorean(partsOfSpeech),
           };
