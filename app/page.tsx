@@ -27,7 +27,7 @@ function tokenizeJapanese(text: string): string[] {
 }
 
 function isWordLike(token: string): boolean {
-  return [...token].some(
+ return token.split('').some(
     (c) =>
       (c >= '぀' && c <= 'ゟ') ||
       (c >= '゠' && c <= 'ヿ') ||
